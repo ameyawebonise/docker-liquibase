@@ -8,6 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update \
 	&& apt-get install -yq --no-install-recommends \
 		wget \
+		netcat \
 		default-jre \
 		libmysql-java \
 	&& apt-get clean \
@@ -24,4 +25,4 @@ WORKDIR /changelogs
 
 COPY docker-entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["update", "changelog.json"]
+CMD ["update"]
