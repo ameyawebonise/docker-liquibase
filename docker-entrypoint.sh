@@ -9,9 +9,13 @@ if [ -z "$MYSQL_PORT_3306_TCP" ]; then
 	exit 1
 fi
 
-if [ -z "$MYSQL_ENV_MYSQL_DATABASE" ]; then
-	echo &>2 'error: missing $MYSQL_ENV_MYSQL_DATABASE environment variables'
-	exit 1
+if [ -n "$MYSQL_ENV_MYSQL_DATABASE" ]; then
+	MYSQL_DATABASE="$MYSQL_ENV_MYSQL_DATABASE"
+else
+	if [ -z "$MYSQL_DATABASE" ]; then
+		echo &>2 'error: missing $MYSQL_DATABASE environment variable'
+		exit 1
+	fi
 fi
 
 # wait for mysql connectivity
@@ -25,23 +29,25 @@ while ! nc $MYSQL_PORT_3306_TCP_ADDR $MYSQL_PORT_3306_TCP_PORT; do
 	fi
 
 	echo "$(date) - MySQL not reachable yet… retrying"
-	sleep 5
+	sleep 3
 done
 
-: ${MYSQL_ENV_MYSQL_USER:=root}
-: ${MYSQL_ENV_MYSQL_PASSWORD:=root}
+: ${MYSQL_USER:=${MYSQL_ENV_MYSQL_USER:=root}}
+: ${MYSQL_PASSWORD:=${MYSQL_ENV_MYSQL_PASSWORD:=root}}
 : ${CHANGELOG_FILE:=changelog.json}
 
 cat > liquibase.properties <<-EOF
 	driver: com.mysql.jdbc.Driver
 	classpath: /usr/share/java/mysql-connector-java.jar
-	url: jdbc:mysql://$MYSQL_PORT_3306_TCP_ADDR:$MYSQL_PORT_3306_TCP_PORT/$MYSQL_ENV_MYSQL_DATABASE
-	username: $MYSQL_ENV_MYSQL_USER
-	password: $MYSQL_ENV_MYSQL_PASSWORD
+	url: jdbc:mysql://$MYSQL_PORT_3306_TCP_ADDR:$MYSQL_PORT_3306_TCP_PORT/$MYSQL_DATABASE
+	username: $MYSQL_USER
+	password: $MYSQL_PASSWORD
 EOF
 
 if [ "$1" == 'update' ]; then
-	echo -n "Applying changes to $MYSQL_ENV_MYSQL_DATABASE. Change log: $CHANGELOG_FILE... "
+	echo -n "Applying changes to $MYSQL_DATABASE. Change log: $CHANGELOG_FILE... "
 	liquibase --changeLogFile="$CHANGELOG_FILE" update
 	echo "Done."
 fi
+
+rm liquibase.properties
