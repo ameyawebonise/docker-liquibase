@@ -45,9 +45,11 @@ cat > liquibase.properties <<-EOF
 EOF
 
 if [ "$1" == 'update' ]; then
+	set +e
 	echo -n "Applying changes to $MYSQL_DATABASE. Change log: $CHANGELOG_FILE... "
 	liquibase --changeLogFile="$CHANGELOG_FILE" update
 	echo "Done."
+	set -e
 fi
 
 rm liquibase.properties
