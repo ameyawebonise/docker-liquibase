@@ -47,7 +47,12 @@ EOF
 if [ "$1" == 'update' ]; then
 	set +e
 	echo -n "Applying changes to $MYSQL_DATABASE. Change log: $CHANGELOG_FILE... "
-	liquibase --changeLogFile="$CHANGELOG_FILE" update -Dtarget_db="$MYSQL_DATABASE"
+
+	if [ -z "$LIQUIBASE_CONTEXTS" ]; then
+		liquibase --changeLogFile="$CHANGELOG_FILE" update -Dtarget_db="$MYSQL_DATABASE"
+	else
+		liquibase --changeLogFile="$CHANGELOG_FILE" --contexts="$LIQUIBASE_CONTEXTS" update -Dtarget_db="$MYSQL_DATABASE"
+	fi
 	echo "Done."
 	set -e
 fi
