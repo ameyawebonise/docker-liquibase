@@ -44,6 +44,7 @@ cat > liquibase.properties <<-EOF
 	password: $MYSQL_PASSWORD
 EOF
 
+: ${LIQUIBASE_CONTEXTS:=""}
 if [ "$1" == 'update' ]; then
 	set +e
 	echo -n "Applying changes to $MYSQL_DATABASE. Change log: $CHANGELOG_FILE... "
